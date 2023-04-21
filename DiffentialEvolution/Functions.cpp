@@ -45,12 +45,8 @@ double evaluate(int D, double tmp[], long* nfeval)
 
     (*nfeval)++;
     for (i = 0; i < D - 1; i++)
-    {
-        //result += ackley_func(tmp[i], tmp[i + 1]);
-        //result += rosenbrock_func(tmp[i], tmp[i + 1]);
-        //result += eggholder_func(tmp[i], tmp[i + 1]);
         result += func(tmp[i], tmp[i + 1]);
-    }
+    
     extern int PRINT_VALUES;
 
     if (PRINT_VALUES)
@@ -72,11 +68,11 @@ void copy_array(double dest[MAX_POPULATION][MAX_GENS], double source[MAX_POPULAT
             dest[j][k] = source[j][k];
 }
 
-double set_bounds(double a, double ceil, double floor) {
-    if (a > ceil)
-        return ceil;
-    else if (a < floor)
-        return floor;
+double check_bounds(double value, double upper, double lower) {
+    if (value > upper)
+        return upper;
+    else if (value < lower)
+        return lower;
     else
-        return a;
+        return value;
 };

@@ -24,66 +24,22 @@ std::vector<double> best_points_z;
 std::vector<double> general_main(int strategy, int genmax, int D, int NP, double inibound_h, double inibound_l, double F, double CR)
 {
     int   i, j, L, n;      // counting variables                 
-    int   r1, r2, r3, r4;  // p   
-    int   r5;              // placeholders for random indexes    
-    //int   D;               // Dimension of parameter vector      
-    //int   NP;              // number of population members       
+    int   r1, r2, r3, r4;  //   
+    int   r5;              // placeholders for random indexes        
     int   imin;            // index to member with lowest energy    
-    //int   strategy;        // choice parameter for screen output 
-    int   gen; // , genmax;     // generation counter and max generation counter
+    int   gen;             // generation counter
     long  nfeval;          // number of function evaluations     
     double trial_energy;    // buffer variable                    
-    //double inibound_h;      // upper parameter bound              
-    //double inibound_l;      // lower parameter bound              
     double  tmp[MAX_GENS]       = { 0 }, 
             best[MAX_GENS]      = { 0 },
             bestit[MAX_GENS]    = { 0 }; // members  
     double energy[MAX_POPULATION] = { 0 };  // obj. funct. values                 
-    //double F, CR;           // control variables of DE            
     double emin;            // help variables                     
     
     // Uniform real distribution
     std::random_device rand;
     std::mt19937 engine(rand()); // A Mersenne Twister pseudo-random generator of 32-bit numbers with a state size of 19937 bits.
     std::uniform_real_distribution<double> dist(LEFT, RIGHT);
-
-    //for (int i = 0; i < argc; i++)
-    //{
-    //    if (strcmp(argv[i], "--no-plot") == 0)
-    //        BUILD_PLOT = 0;
-    //    else if (strcmp(argv[i], "--no-values") == 0)
-    //        PRINT_VALUES = 0;
-    //    else if (strcmp(argv[i], "--func") == 0)
-    //    {
-    //        if (i + 1 >= argc)
-    //        {
-    //            std::cout << "Unknown function code! Eggholder will be used!\n";
-    //            FUNC_TYPE = -1;
-    //        }
-    //        else
-    //            FUNC_TYPE = atoi(argv[i + 1]);
-    //    }
-    //}
-
-    //std::ifstream stream("demo.dat");
-
-    //if (!stream.is_open())
-    //{
-    //    std::cout << "The file demo.dat was not opened\n";
-    //    exit(1);
-    //}
-
-    //stream >> strategy;       // choice of strategy
-    //stream >> genmax;         // maximum number of generations
-    //stream >> D;              // number of parameters
-    //stream >> NP;             // population size.
-    //stream >> inibound_h;     // upper parameter bound for init
-    //stream >> inibound_l;     // lower parameter bound for init
-    //stream >> F;              // weight factor
-    //stream >> CR;             // crossing over factor
-    
-    //stream.close();
-
 
     nfeval = 0;           // reset number of function evaluations 
     double r;
@@ -125,6 +81,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
     copy_array(newarray, d);
 
     auto start = std::chrono::system_clock::now();
+
     // Iteration loop
     gen = 1; // generation counter reset
     while ((gen < genmax))
@@ -193,7 +150,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 L = 0;
                 do {
                     tmp[n] = bestit[n] + F * (oldarray[r2][n] - oldarray[r3][n]);
-                    tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
+                    tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
                     n = (n + 1) % D;
                     L++;
                 } while ((dist(engine) < CR) && (L < D));
@@ -212,7 +169,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 L = 0;
                 do {
                     tmp[n] = oldarray[r1][n] + F * (oldarray[r2][n] - oldarray[r3][n]);
-                    tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
+                    tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
                     n = (n + 1) % D;
                     L++;
                 } while ((dist(engine) < CR) && (L < D));
@@ -231,7 +188,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 L = 0;
                 do {
                     tmp[n] = tmp[n] + F * (bestit[n] - tmp[n]) + F * (oldarray[r1][n] - oldarray[r2][n]);
-                    tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
+                    tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
                     n = (n + 1) % D;
                     L++;
                 } while ((dist(engine) < CR) && (L < D));
@@ -246,7 +203,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 L = 0;
                 do {
                     tmp[n] = bestit[n] + (oldarray[r1][n] + oldarray[r2][n] - oldarray[r3][n] - oldarray[r4][n]) * F;
-                    tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
+                    tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
                     n = (n + 1) % D;
                     L++;
                 } while ((dist(engine) < CR) && (L < D));
@@ -261,7 +218,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 L = 0;
                 do {
                     tmp[n] = oldarray[r5][n] + (oldarray[r1][n] + oldarray[r2][n] - oldarray[r3][n] - oldarray[r4][n]) * F;
-                    tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
+                    tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
                     n = (n + 1) % D;
                     L++;
                 } while ((dist(engine) < CR) && (L < D));
@@ -278,10 +235,12 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 for (L = 0; L < D; L++)
                 {
                     // change at least one parameter
-                    if ((dist(engine) < CR) || L == (D - 1)) {
+                    if ((dist(engine) < CR) || L == (D - 1))
+                    {
                         tmp[n] = bestit[n] + F * (oldarray[r2][n] - oldarray[r3][n]);
-                        tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
+                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
                     }
+
                     n = (n + 1) % D;
                 }
             }
@@ -297,9 +256,11 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 {
                     // change at least one parameter
                     if ((dist(engine) < CR) || L == (D - 1))
+                    {
                         tmp[n] = oldarray[r1][n] + F * (oldarray[r2][n] - oldarray[r3][n]);
-                        tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
-                    
+                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
+                    }
+                        
                     n = (n + 1) % D;
                 }
             }
@@ -313,9 +274,11 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 for (L = 0; L < D; L++)
                 {
                     if ((dist(engine) < CR) || L == (D - 1))
+                    {
                         tmp[n] = tmp[n] + F * (bestit[n] - tmp[n]) + F * (oldarray[r1][n] - oldarray[r2][n]);
-                        tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
-
+                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
+                    }
+                        
                     n = (n + 1) % D;
                 }
             }
@@ -329,9 +292,11 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 for (L = 0; L < D; L++)
                 {
                     if ((dist(engine) < CR) || L == (D - 1))
+                    {
                         tmp[n] = bestit[n] + (oldarray[r1][n] + oldarray[r2][n] - oldarray[r3][n] - oldarray[r4][n]) * F;
-                        tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
-                    
+                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
+                    }
+                        
                     n = (n + 1) % D;
                 }
             }
@@ -344,10 +309,12 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                 n = (int)(dist(engine) * D);
                 for (L = 0; L < D; L++)
                 {
-                    if ((dist(engine) < CR) || L == (D - 1)) 
+                    if ((dist(engine) < CR) || L == (D - 1))
+                    {
                         tmp[n] = oldarray[r5][n] + (oldarray[r1][n] + oldarray[r2][n] - oldarray[r3][n] - oldarray[r4][n]) * F;
-                        tmp[n] = set_bounds(tmp[n], inibound_h, inibound_l);
-                    
+                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
+                    }
+                        
                     n = (n + 1) % D;
                 }
             }
@@ -402,50 +369,112 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
         std::cout << std::format("Elapsed time: {}\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start));
     }
     
-    std::vector<double> total_result = { emin };
+    std::vector<double> total_result;
 
     for (int i = 0; i < D; i++)
         total_result.push_back(best[i]);
 
-    total_result.push_back((double)strategy);  total_result.push_back((double)NP);  total_result.push_back(F);  total_result.push_back(CR);
+    total_result.push_back(emin);
+    total_result.push_back((double)strategy);
+    total_result.push_back((double)NP); 
+    total_result.push_back(F); 
+    total_result.push_back(CR);
 
     return total_result;
 };
 
-int main() {
-    int iters = 150;
-    int D = 4; //num of genes
-    double ceil = 512;      // upper parameter bound              
-    double floor = -512;      // lower parameter bound 
-    //double for_plotting[4];
-    for (size_t strategy = 1; strategy < 10; strategy++)
+int main(int argc, char* argv[]) {
+    for (int i = 0; i < argc; i++)
     {
-        std::vector<std::vector<double>> summary;
-        for (double F = 0; F <= 2; F+=0.4)
+        if (strcmp(argv[i], "--no-plot") == 0)
+            BUILD_PLOT = 0;
+        else if (strcmp(argv[i], "--no-values") == 0)
+            PRINT_VALUES = 0;
+        else if (strcmp(argv[i], "--func") == 0)
         {
-            for (double CR = 0; CR <= 1; CR+=0.2)
+            if (i + 1 >= argc)
             {
-                summary.push_back(general_main(strategy, iters, D, D * 10, ceil, floor, F, CR));
+                std::cout << "Unknown function code! Eggholder will be used!\n";
+                FUNC_TYPE = -1;
             }
-        }
-        std::sort(summary.begin(), summary.end(), [](auto& left, auto& right) {
-            return left[0] < right[0];
-            });
-
-        std::cout << std::format("\n\nStrategy: {}\n", summary[0][3]);
-        for (size_t i = 0; i < 3; i++)
-        {
-            std::cout << std::format("\nBest {} obj. funct. value: {:.10f}", i+1, summary[i][0]);
-            for (int j = 0; j < D; j++)
-                std::cout << std::format("\nbest[{}]: {:.7f}", j, summary[i][j+1]);
-            std::cout << std::format("\nNP: {}  F: {:.1f}  CR: {:.1f}\n", summary[i][4], summary[i][5], summary[i][6]);
+            else
+                FUNC_TYPE = atoi(argv[i + 1]);
         }
     }
 
-    //for (int i = 0; i < best_points_x.size(); i++)
+    //std::ifstream stream("demo.dat");
+    //if (!stream.is_open())
     //{
-    //    std::cout << std::format("i {} : x {} y {} z {}\n", best_)
+    //    std::cout << "The file demo.dat was not opened\n";
+    //    exit(1);
     //}
+    //stream >> strategy;       // choice of strategy
+    //stream >> genmax;         // maximum number of generations
+    //stream >> D;              // number of parameters
+    //stream >> NP;             // population size.
+    //stream >> inibound_h;     // upper parameter bound for init
+    //stream >> inibound_l;     // lower parameter bound for init
+    //stream >> F;              // weight factor
+    //stream >> CR;             // crossing over factor
+    //stream.close();
+
+    int iters = 150;
+    const int D = 4; //num of genes
+
+    std::vector<std::vector<double>> summary;
+    for (size_t strategy = 1; strategy < 10; strategy++)
+    {
+        summary.clear();
+
+        for (double F = 0; F <= 2; F += 0.4)
+            for (double CR = 0; CR <= 1; CR += 0.2)
+                summary.push_back(general_main(strategy, iters, D, D * 10, UPPER_BOUND, LOWER_BOUND, F, CR));
+        
+        std::sort(
+            summary.begin(),
+            summary.end(), 
+            [](auto& left, auto& right) { return left[D] < right[D]; }
+        );
+
+        std::cout << std::format("\n\nStrategy: {}\n", summary[0][D + 1]);
+        for (size_t i = 0; i < 3; i++)
+        {
+            std::cout << std::format("\nBest {} obj. funct. value: {:.10f}", i+1, summary[i][D]);
+            for (int j = 0; j < D; j++)
+                std::cout << std::format("\nbest[{}]: {:.7f}", j, summary[i][j]);
+            std::cout << std::format("\nNP: {}  F: {:.1f}  CR: {:.1f}\n", summary[i][D + 2], summary[i][D + 3], summary[i][D + 4]);
+        }
+    }
+
+    if (BUILD_PLOT)
+    {
+        auto [X, Y] = matplot::meshgrid(matplot::iota(LOWER_BOUND - 20, (int)(UPPER_BOUND / 20), UPPER_BOUND + 20));
+        auto Z = matplot::transform(
+            X, Y, func
+        );
+        matplot::mesh(X, Y, Z)->hidden_3d(false);
+
+        if (D == 2)
+        {
+            matplot::hold(matplot::on);
+
+            matplot::scatter3(best_points_x, best_points_y, best_points_z)->marker_color(matplot::color::green);
+
+            best_points_x.clear();
+            best_points_y.clear();
+            best_points_z.clear();
+
+            matplot::scatter3(
+                std::vector<double> { summary[0][0] },
+                std::vector<double> { summary[0][1] },
+                std::vector<double> { summary[0][2] }
+            )->marker_color(matplot::color::red);
+        }
+        else
+            std::cout << "Multidemensional generalization, could't plot it in 3D!\n";
+
+        matplot::show();
+    }
 
     return 0;
 }
