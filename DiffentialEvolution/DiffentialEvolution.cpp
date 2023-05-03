@@ -301,10 +301,11 @@ int main(int argc, char* argv[]) {
     double acceptable_error = 0.05; //if error equals 1% or less -> count as converged
     int repeats = 500; //repeat 
 
-    double F, CR, NP_multi;
+    double F, CR;
     int iters = 200;
-    NP_multi = 10; //We get num of parents by multiplication amount of genes by this number
+    F = 1; //We get num of parents by multiplication amount of genes by this number
     CR = 0.5;
+    int NP;
 
     std::ofstream myfile;
     myfile.open("example.csv");
@@ -313,12 +314,12 @@ int main(int argc, char* argv[]) {
     //strat 1 - base
     //strat 2 - our mod 
     //strat 3 - our mod with 4 parents
-    for (F = 0; F <= 2; F += 0.01)
+    for (NP = D; NP <= 20*D; NP++)
     {
         std::string total_string = "";
         //for(int iters = 10; iters <= 500; iters +=10)
         //{
-        total_string = std::to_string(F) + ";";
+        total_string = std::to_string(NP) + ";";
         //std::vector<std::vector<double>> summary;
         for (size_t strategy = 1; strategy <= 3; strategy++)
         {
@@ -333,7 +334,7 @@ int main(int argc, char* argv[]) {
             {
                 counter++;
                 //summary.push_back(general_main(strategy, iters, D, D * NP_multi, UPPER_BOUND, LOWER_BOUND, F, CR));
-                double func_result = general_main(strategy, iters, D, D * NP_multi, UPPER_BOUND, LOWER_BOUND, F, CR)[D];
+                double func_result = general_main(strategy, iters, D, NP, UPPER_BOUND, LOWER_BOUND, F, CR)[D];
                 MAPE += fabs(egg_holder_optimum - func_result);
                 //std::cout << summary.back()[D] << '\n';
                 if (fabs(func_result) > fabs((1 - acceptable_error) * egg_holder_optimum)) // check if value in right interval (95%)
@@ -366,7 +367,7 @@ int main(int argc, char* argv[]) {
             //}
         }
         myfile << total_string << '\n';
-        std::cout << "F=" << F << " iteration with 3 strats is over\n";
+        std::cout << "NP=" << NP << " iteration with 3 strats is over\n";
     }
     myfile.close();
 
