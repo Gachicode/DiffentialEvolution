@@ -2,15 +2,17 @@
 #include <cmath>
 #include <fstream>
 #include <matplot/matplot.h>
+#include <string>
 #include <random>
 #include <vector>
 #include <variant>
 #include "Functions.h"
+#include <math.h>
 
-int BUILD_PLOT      = 1;
-int FUNC_TYPE       = -1;
-int PRINT_VALUES    = 0;
-int PRINT_RESULTS   = 0;
+int BUILD_PLOT = 0;
+int FUNC_TYPE = -1;
+int PRINT_VALUES = 0;
+int PRINT_RESULTS = 0;
 
 double c[MAX_POPULATION][MAX_GENS], d[MAX_POPULATION][MAX_GENS];
 double oldarray[MAX_POPULATION][MAX_GENS];
@@ -30,12 +32,12 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
     int   gen;             // generation counter
     long  nfeval;          // number of function evaluations     
     double trial_energy;    // buffer variable                    
-    double  tmp[MAX_GENS]       = { 0 }, 
-            best[MAX_GENS]      = { 0 },
-            bestit[MAX_GENS]    = { 0 }; // members  
+    double  tmp[MAX_GENS] = { 0 },
+        best[MAX_GENS] = { 0 },
+        bestit[MAX_GENS] = { 0 }; // members  
     double energy[MAX_POPULATION] = { 0 };  // obj. funct. values                 
     double emin;            // help variables                     
-    
+
     // Uniform real distribution
     std::random_device rand;
     std::mt19937 engine(rand()); // A Mersenne Twister pseudo-random generator of 32-bit numbers with a state size of 19937 bits.
@@ -141,7 +143,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
             // optimization problems where misconvergence occurs.
 
             // strategy DE0 (not in our paper)
-            if (strategy == 1)
+            if (strategy == 2) //based
             {
                 for (int k = 0; k < MAX_GENS; k++)
                     tmp[k] = oldarray[i][k];
@@ -160,7 +162,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
             // "bestit[]"-schemes experience misconvergence. Try e.g. F=0.7 and CR = 0.5
             // as a first guess.
             // strategy DE1 in the techreport
-            else if (strategy == 2)
+            else if (strategy == 1) //mod
             {
                 for (int k = 0; k < MAX_GENS; k++)
                     tmp[k] = oldarray[i][k];
@@ -174,116 +176,9 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                     L++;
                 } while ((dist(engine) < CR) && (L < D));
             }
-            // DE/rand-to-best/1/exp
-            // This strategy seems to be one of the best strategies. Try F=0.85 and CR = 1.0
-            // If you get misconvergence try to increase NP. If this doesn't help you
-            // should play around with all three control variables.
-            // similiar to DE2 but generally better
-            else if (strategy == 3)
-            {
-                for (int k = 0; k < MAX_GENS; k++)
-                    tmp[k] = oldarray[i][k];
 
-                n = (int)(dist(engine) * D);
-                L = 0;
-                do {
-                    tmp[n] = tmp[n] + F * (bestit[n] - tmp[n]) + F * (oldarray[r1][n] - oldarray[r2][n]);
-                    tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
-                    n = (n + 1) % D;
-                    L++;
-                } while ((dist(engine) < CR) && (L < D));
-            }
-            // DE/best/2/exp is another powerful strategy worth trying
-            else if (strategy == 4)
-            {
-                for (int k = 0; k < MAX_GENS; k++)
-                    tmp[k] = oldarray[i][k];
-                
-                n = (int)(dist(engine) * D);
-                L = 0;
-                do {
-                    tmp[n] = bestit[n] + (oldarray[r1][n] + oldarray[r2][n] - oldarray[r3][n] - oldarray[r4][n]) * F;
-                    tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
-                    n = (n + 1) % D;
-                    L++;
-                } while ((dist(engine) < CR) && (L < D));
-            }
-            // DE/rand/2/exp seems to be a robust optimizer for many functions
-            else if (strategy == 5)
-            {
-                for (int k = 0; k < MAX_GENS; k++)
-                    tmp[k] = oldarray[i][k];
-
-                n = (int)(dist(engine) * D);
-                L = 0;
-                do {
-                    tmp[n] = oldarray[r5][n] + (oldarray[r1][n] + oldarray[r2][n] - oldarray[r3][n] - oldarray[r4][n]) * F;
-                    tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
-                    n = (n + 1) % D;
-                    L++;
-                } while ((dist(engine) < CR) && (L < D));
-            }
-            // Essentially same strategies but BINOMIAL CROSSOVER
-            // DE/best/1/bin
-            else if (strategy == 6)
-            {
-                for (int k = 0; k < MAX_GENS; k++)
-                    tmp[k] = oldarray[i][k];
-            
-                n = (int)(dist(engine) * D);
-                // perform D binomial trials
-                for (L = 0; L < D; L++)
-                {
-                    // change at least one parameter
-                    if ((dist(engine) < CR) || L == (D - 1))
-                    {
-                        tmp[n] = bestit[n] + F * (oldarray[r2][n] - oldarray[r3][n]);
-                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
-                    }
-
-                    n = (n + 1) % D;
-                }
-            }
-            // DE/rand/1/bin
-            else if (strategy == 7)
-            {
-                for (int k = 0; k < MAX_GENS; k++)
-                    tmp[k] = oldarray[i][k];
-
-                n = (int)(dist(engine) * D);
-                // perform D binomial trials */
-                for (L = 0; L < D; L++)
-                {
-                    // change at least one parameter
-                    if ((dist(engine) < CR) || L == (D - 1))
-                    {
-                        tmp[n] = oldarray[r1][n] + F * (oldarray[r2][n] - oldarray[r3][n]);
-                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
-                    }
-                        
-                    n = (n + 1) % D;
-                }
-            }
-            // DE/rand-to-best/1/bin
-            else if (strategy == 8)
-            {
-                for (int k = 0; k < MAX_GENS; k++)
-                    tmp[k] = oldarray[i][k];
-                
-                n = (int)(dist(engine) * D);
-                for (L = 0; L < D; L++)
-                {
-                    if ((dist(engine) < CR) || L == (D - 1))
-                    {
-                        tmp[n] = tmp[n] + F * (bestit[n] - tmp[n]) + F * (oldarray[r1][n] - oldarray[r2][n]);
-                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
-                    }
-                        
-                    n = (n + 1) % D;
-                }
-            }
             // DE/best/2/bin
-            else if (strategy == 9)
+            else if (strategy == 3) //mod 4 parents
             {
                 for (int k = 0; k < MAX_GENS; k++)
                     tmp[k] = oldarray[i][k];
@@ -296,28 +191,11 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
                         tmp[n] = bestit[n] + (oldarray[r1][n] + oldarray[r2][n] - oldarray[r3][n] - oldarray[r4][n]) * F;
                         tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
                     }
-                        
+
                     n = (n + 1) % D;
                 }
             }
-            // DE/rand/2/bin
-            else
-            {
-                for (int k = 0; k < MAX_GENS; k++)
-                    tmp[k] = oldarray[i][k];
-                
-                n = (int)(dist(engine) * D);
-                for (L = 0; L < D; L++)
-                {
-                    if ((dist(engine) < CR) || L == (D - 1))
-                    {
-                        tmp[n] = oldarray[r5][n] + (oldarray[r1][n] + oldarray[r2][n] - oldarray[r3][n] - oldarray[r4][n]) * F;
-                        tmp[n] = check_bounds(tmp[n], inibound_h, inibound_l);
-                    }
-                        
-                    n = (n + 1) % D;
-                }
-            }
+
 
             // Trial mutation now in tmp[]. Test how good this choice really was.
             trial_energy = evaluate(D, tmp, &nfeval);  // Evaluate new vector in tmp[]
@@ -348,7 +226,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
         best_points_x.push_back(best[0]);
         best_points_y.push_back(best[1]);
         best_points_z.push_back(emin);
-        
+
         copy_vector(bestit, best);  // Save best population member of current iteration
 
         // swap population arrays. New generation becomes old one
@@ -368,7 +246,7 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
         std::cout << std::format("Strategy: {}  NP: {}  F: {}  CR: {}\n", strategy, NP, F, CR);
         std::cout << std::format("Elapsed time: {}\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - start));
     }
-    
+
     std::vector<double> total_result;
 
     for (int i = 0; i < D; i++)
@@ -376,8 +254,8 @@ std::vector<double> general_main(int strategy, int genmax, int D, int NP, double
 
     total_result.push_back(emin);
     total_result.push_back((double)strategy);
-    total_result.push_back((double)NP); 
-    total_result.push_back(F); 
+    total_result.push_back((double)NP);
+    total_result.push_back(F);
     total_result.push_back(CR);
 
     return total_result;
@@ -418,63 +296,79 @@ int main(int argc, char* argv[]) {
     //stream >> CR;             // crossing over factor
     //stream.close();
 
-    int iters = 150;
     const int D = 4; //num of genes
+    double egg_holder_optimum = -915.61991 * D + 862.10466;
+    double acceptable_error = 0.05; //if error equals 1% or less -> count as converged
+    int repeats = 500; //repeat 
 
-    std::vector<std::vector<double>> summary;
-    for (size_t strategy = 1; strategy < 10; strategy++)
+    double F, CR, NP_multi;
+    int iters = 200;
+    NP_multi = 10; //We get num of parents by multiplication amount of genes by this number
+    CR = 0.5;
+
+    std::ofstream myfile;
+    myfile.open("example.csv");
+    myfile << "F; strategy 1 convergence; strategy 1 MAPE; strategy 2 convergence; strategy 2 MAPE; strategy 3 convergence; strategy 3 MAPE\n";
+    // all conv and MAPE in %
+    //strat 1 - base
+    //strat 2 - our mod 
+    //strat 3 - our mod with 4 parents
+    for (F = 0; F <= 2; F += 0.01)
     {
-        summary.clear();
-
-        for (double F = 0; F <= 2; F += 0.4)
-            for (double CR = 0; CR <= 1; CR += 0.2)
-                summary.push_back(general_main(strategy, iters, D, D * 10, UPPER_BOUND, LOWER_BOUND, F, CR));
-        
-        std::sort(
-            summary.begin(),
-            summary.end(), 
-            [](auto& left, auto& right) { return left[D] < right[D]; }
-        );
-
-        std::cout << std::format("\n\nStrategy: {}\n", summary[0][D + 1]);
-        for (size_t i = 0; i < 3; i++)
+        std::string total_string = "";
+        //for(int iters = 10; iters <= 500; iters +=10)
+        //{
+        total_string = std::to_string(F) + ";";
+        //std::vector<std::vector<double>> summary;
+        for (size_t strategy = 1; strategy <= 3; strategy++)
         {
-            std::cout << std::format("\nBest {} obj. funct. value: {:.10f}", i+1, summary[i][D]);
-            for (int j = 0; j < D; j++)
-                std::cout << std::format("\nbest[{}]: {:.7f}", j, summary[i][j]);
-            std::cout << std::format("\nNP: {}  F: {:.1f}  CR: {:.1f}\n", summary[i][D + 2], summary[i][D + 3], summary[i][D + 4]);
+            //summary.clear();
+            int converged = 0, counter = 0;
+            double MAPE = 0;
+            //summary.push_back(general_main(strategy, iters, D, D * NP_multi, UPPER_BOUND, LOWER_BOUND, 1, 0.5));
+
+
+            //for (double F = 0; F <= 2; F += 0.2)
+            for (int a = 0; a < repeats; a++)
+            {
+                counter++;
+                //summary.push_back(general_main(strategy, iters, D, D * NP_multi, UPPER_BOUND, LOWER_BOUND, F, CR));
+                double func_result = general_main(strategy, iters, D, D * NP_multi, UPPER_BOUND, LOWER_BOUND, F, CR)[D];
+                MAPE += fabs(egg_holder_optimum - func_result);
+                //std::cout << summary.back()[D] << '\n';
+                if (fabs(func_result) > fabs((1 - acceptable_error) * egg_holder_optimum)) // check if value in right interval (95%)
+                    converged++;
+
+            }
+            double convergeance_rate = (double)converged / (double)counter;
+
+
+            /*        std::sort(
+                        summary.begin(),
+                        summary.end(),
+                        [](auto& left, auto& right) { return left[D] < right[D]; }
+                    );*/
+
+
+                    //std::cout << std::format("\n\nStrategy: {}\n", summary[0][D + 1]);
+                    //for (size_t i = 0; i < 3; i++)
+                    //{
+                    //    std::cout << std::format("\nBest {} obj. funct. value: {:.10f}", i + 1, summary[i][D]);
+                    //    //for (int j = 0; j < D; j++)
+                    //    //    std::cout << std::format("\nbest[{}]: {:.7f}", j, summary[i][j]);
+                    //    //std::cout << std::format("\nNP: {}  F: {:.1f}  CR: {:.1f}\n", summary[i][D + 2], summary[i][D + 3], summary[i][D + 4]);
+
+                    //}
+            MAPE = MAPE / counter / fabs(egg_holder_optimum);
+            //std::cout << std::format("\nConverged: {:2f} %", convergeance_rate * 100)
+            //    << "\nMAPE: " << MAPE * 100 << '%';
+            total_string = total_string + std::to_string(convergeance_rate * 100) + ";" + std::to_string(MAPE * 100) + ";";
+            //}
         }
+        myfile << total_string << '\n';
+        std::cout << "F=" << F << " iteration with 3 strats is over\n";
     }
-
-    if (BUILD_PLOT)
-    {
-        auto [X, Y] = matplot::meshgrid(matplot::iota(LOWER_BOUND - 20, (int)(UPPER_BOUND / 20), UPPER_BOUND + 20));
-        auto Z = matplot::transform(
-            X, Y, func
-        );
-        matplot::mesh(X, Y, Z)->hidden_3d(false);
-
-        if (D == 2)
-        {
-            matplot::hold(matplot::on);
-
-            matplot::scatter3(best_points_x, best_points_y, best_points_z)->marker_color(matplot::color::green);
-
-            best_points_x.clear();
-            best_points_y.clear();
-            best_points_z.clear();
-
-            matplot::scatter3(
-                std::vector<double> { summary[0][0] },
-                std::vector<double> { summary[0][1] },
-                std::vector<double> { summary[0][2] }
-            )->marker_color(matplot::color::red);
-        }
-        else
-            std::cout << "Multidemensional generalization, could't plot it in 3D!\n";
-
-        matplot::show();
-    }
+    myfile.close();
 
     return 0;
 }
