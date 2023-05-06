@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
     const int D = 4; //num of genes
     double egg_holder_optimum = -915.61991 * D + 862.10466;
     double acceptable_error = 0.05; //if error equals 1% or less -> count as converged
-    int repeats = 500; //repeat 
+    int repeats = 250; //repeat 
 
     double F, CR, NP_multi;
     int iters = 200;
@@ -307,13 +307,13 @@ int main(int argc, char* argv[]) {
     F = 1;
     
     std::ofstream myfile;
-    myfile.open("example.csv");
+    myfile.open("example_CR.csv");
     myfile << "CR; strategy 1 convergence; strategy 1 MAPE; strategy 2 convergence; strategy 2 MAPE; strategy 3 convergence; strategy 3 MAPE\n";
     // all conv and MAPE in %
     //strat 1 - base
     //strat 2 - our mod 
     //strat 3 - our mod with 4 parents
-    for (CR = 0; CR <= 1; CR += 0.01)
+    for (CR = 0; CR <= 1 + 0.01; CR += 0.01)
     {
         std::string total_string = "";
         //for(int iters = 10; iters <= 500; iters +=10)
