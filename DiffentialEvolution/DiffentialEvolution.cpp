@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
     //strat 1 - base
     //strat 2 - our mod 
     //strat 3 - our mod with 4 parents
-    for (F = 0; F <= 2 + 0.01; F += 0.01)
+    for (F = 0; F < 2 + 0.1; F += 0.1)
     {
         std::string total_string = "";
         //for(int iters = 10; iters <= 500; iters +=10)
