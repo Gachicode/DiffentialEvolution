@@ -299,7 +299,7 @@ int main(int argc, char* argv[]) {
     const int D = 4; //num of genes
     double egg_holder_optimum = -915.61991 * D + 862.10466;
     double acceptable_error = 0.05; //if error equals 1% or less -> count as converged
-    int repeats = 500; //repeat 
+    int repeats = 250; //repeat 
 
     double F, CR;
     int iters = 200;
@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
     //strat 1 - base
     //strat 2 - our mod 
     //strat 3 - our mod with 4 parents
-    for (NP = D; NP <= 20*D; NP++)
+    for (NP = D*2; NP <= 20*D; NP++)
     {
         std::string total_string = "";
         //for(int iters = 10; iters <= 500; iters +=10)
