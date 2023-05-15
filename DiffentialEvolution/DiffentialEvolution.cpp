@@ -305,20 +305,21 @@ int main(int argc, char* argv[]) {
     int iters = 200;
     NP_multi = 10; //We get num of parents by multiplication amount of genes by this number
     F = 1;
+    CR = 0.5;
     
     std::ofstream myfile;
-    myfile.open("example_CR.csv");
-    myfile << "CR; strategy 1 convergence; strategy 1 MAPE; strategy 2 convergence; strategy 2 MAPE; strategy 3 convergence; strategy 3 MAPE\n";
+    myfile.open("example_ITERS.csv");
+    myfile << "ITERS; strategy 1 convergence; strategy 1 MAPE; strategy 2 convergence; strategy 2 MAPE; strategy 3 convergence; strategy 3 MAPE\n";
     // all conv and MAPE in %
     //strat 1 - base
     //strat 2 - our mod 
     //strat 3 - our mod with 4 parents
-    for (CR = 0; CR <= 1 + 0.01; CR += 0.01)
+    for (iters = 10; iters <= 500; iters += 10)
     {
         std::string total_string = "";
         //for(int iters = 10; iters <= 500; iters +=10)
         //{
-        total_string = std::to_string(CR) + ";";
+        total_string = std::to_string(iters) + ";";
         //std::vector<std::vector<double>> summary;
         for (size_t strategy = 1; strategy <= 3; strategy++)
         {
@@ -366,7 +367,7 @@ int main(int argc, char* argv[]) {
             //}
         }
         myfile << total_string << '\n';
-        std::cout << "CR=" << CR << " iteration with 3 strats is over\n";
+        std::cout << "ITERS=" << iters << " iteration with 3 strats is over\n";
     }
     myfile.close();
 
